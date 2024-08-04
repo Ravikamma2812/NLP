@@ -1,0 +1,81 @@
+import pandas as pd
+df = pd.read_csv('C:\\Users\\ravit\\Downloads\\BBC News Train.csv')
+display(df)
+  	ArticleId	Text	Category
+    0	1833	worldcom ex-boss launches defence lawyers defe...	business
+    1	154	german business confidence slides german busin...	business
+    2	1101	bbc poll indicates economic gloom citizens in ...	business
+    3	1976	lifestyle governs mobile choice faster bett...	tech
+    4	917	enron bosses in $168m payout eighteen former e...	business
+    ...	...	...	...
+   1485	857	double eviction from big brother model caprice...	entertainment
+   1486	325	dj double act revamp chart show dj duo jk and ...	entertainment
+   1487	1590	weak dollar hits reuters revenues at media gro...	business
+   1488	1587	apple ipod family expands market apple has exp...	tech
+   1489	538	santy worm makes unwelcome visit thousands of ...	tech
+   1490 rows × 3 columns
+df.isnull().sum()
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+import re
+def spc(news):
+    lst1=[]
+    for element in news:
+        result=" "
+        result=re.sub("[^A-Za-z]"," ",element)
+        lst1.append(result)
+        return lst1
+def stp(news):
+    lst1=[]
+    for ele in news:
+         token=word_tokenize(ele)
+         token_wtht_stp=[word for word in token if not word in stopwords.words('english')]
+         result1=' '.join(token_wtht_stp)
+         lst1.append(result1)
+         return lst1
+corpus=[]
+ps=PorterStemmer()
+for word in df['Text']:
+   # words=word_tokenize(word)
+    words=spc(word)
+    words=stp(word)
+    final_lst=[]
+    for word in words:
+        lst2=ps.stem(word)
+        final_lst.append(lst2)
+    corpus.append(' '.join(lst2))  
+from rank_bm25 import *
+import warnings
+import re
+def news_search(query, corpus, n, news_data):
+  tokenized_corpus = [doc.split(" ") for doc in corpus]
+  bm25 = BM25Okapi(tokenized_corpus)
+  tokenized_query = query.split(" ")
+  doc_scores = bm25.get_scores(tokenized_query)
+  ind = np.argpartition(doc_scores, -n)[-n:]
+  return news_data['Text'][ind]
+Query = input("Enter your query for news search: ").lower()
+n = 1
+print(f'Displaying top {n} articles \n')
+result = news_search(Query, corpus, n, df)
+for ans in result:
+  print(ans)
+  print()
+
+output:
+     Enter your query for news search:  india
+Displaying top 1 articles 
+santy worm makes unwelcome visit thousands of website bulletin boards have been defaced by a virus that used google to spread across the net.  
+the santy worm first appeared on 20 december and within 24 hours had successfully hit more than 40 000 websites.
+the malicious program exploits a vulnerability in the widely used phpbb software. santy s spread has now been stopped after google began blocking infected sites searching for new victims. 
+the worm replaces chat forums with a webpage announcing that the site had been defaced by the malicious program.
+soon after being infected  sites hit by the worm started randomly searching for other websites running the vulnerable phpbb software.
+once google started blocking these search queries the rate of infection tailed off sharply. 
+a message sent to finnish security firm f-secure by google s security team said: 
+while a seven hour response for something like this is not outrageous  we think we can and should do better.  
+we will be reviewing our procedures to improve our response time in the future to similar problems   the google team said.
+security firms estimate that about 1m websites run their discussion groups and forums with the open source phpbb program. 
+the worst of the attack now seems to be over as a search conducted on the morning of the 22 december produced only 1 440 hits for sites showing the text used in the defacement message. people using the sites hit by santy will not be affected by the worm. 
+santy is not the first malicious program to use google to help it spread.
+in july a variant of the mydoom virus slowed down searches on google as the program flooded the search site with queries looking for new e-mail addresses to send itself to.
